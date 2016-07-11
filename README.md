@@ -2,7 +2,7 @@
 
 ## Info
 
-This repo contains Javascript sample code, using ES6 classes and other features, for visualising features extracted from Vamp plugins in the browser. The Vamp extraction code is C++ compiled to Javascript using Emscripten, and the preliminary work on this is available [here](https://lucasthompson.github.io/vamp-js-example-es6/zero-crossings.html). 
+This repo contains Javascript sample code, using ES6 classes and other features, for visualising features extracted from Vamp plugins in the browser. The Vamp extraction code is C++ compiled to Javascript using Emscripten, and the preliminary work on this is available [here](https://github.com/LucasThompson/vamp-js). 
 
 There are only a few simple classes (all within VampUtils.js for simplicity):
 
