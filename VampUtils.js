@@ -25,19 +25,21 @@ class SpectrogramCanvasView extends VampFeatureCanvasView {
   }
 
   draw() {
-    for (let s = 0; s < this.JAMS.time.length; ++s) {
-      this.drawSpectrogram(this.JAMS.value[s]);
+    for (let bins of this.JAMS.value) {
+      this.drawSpectrogramLine(bins);
     }
   }
 
-  drawSpectrogram(array) {
+  drawSpectrogramLine(bins) {
     const minDecibels = -100;
     const maxDecibels = -30;
     const rangeScaleFactor = 1.0 / (maxDecibels - minDecibels);
+    const nBins = bins.length;
+    const normalisationFactor = 1 / nBins;
 
-    for (let i = 0; i < array.length; i++) {
+    for (let [i, binValue] of bins.entries()) {
       // scale
-      const value = array[i] / array.length;
+      const value = binValue * normalisationFactor;
       // re-map range
       const dbMag = (isFinite(value) && value > 0.0) ? 20.0 * Math.log10(value) : minDecibels;
       let scaledValue = 255 * (dbMag - minDecibels) * rangeScaleFactor;
@@ -49,7 +51,7 @@ class SpectrogramCanvasView extends VampFeatureCanvasView {
       scaledValue = Math.floor(scaledValue);
       // draw line
       this.ctx.fillStyle = 'rgb(c, c, c)'.replace(/c/g, 255 - scaledValue);
-      this.ctx.fillRect(0, 512 - i, 1, 1);
+      this.ctx.fillRect(0, nBins - i - 1, 1, 1);
     }
     this.ctx.translate(1, 0);
   }
@@ -60,9 +62,9 @@ class ScatterPlotCanvasView extends VampFeatureCanvasView {
     super(width, height, JAMS);
     this.label = plotLabel;
     this.data = [];
-    for (let i = 0; i < this.JAMS.time.length; ++i) {
+    for (let [i, timeStamp] of this.JAMS.time.entries()) {
       this.data.push({
-        x: this.JAMS.time[i],
+        x: timeStamp,
         y: this.JAMS.value[i][0]
       });
     }
@@ -128,9 +130,9 @@ class WebAudioVampPluginRunner {
       const stream = vamp.createRawDataAudioStream(renderedBuffer.length, renderedBuffer.numberOfChannels, renderedBuffer.sampleRate);
 
       for (let c = 0; c < renderedBuffer.numberOfChannels; ++c) {
-        const cBuffer = renderedBuffer.getChannelData(c);
-        for (let n = 0; n < renderedBuffer.length; ++n) {
-          stream.setSample(n, c, cBuffer[n]);
+        const channelBuffer = renderedBuffer.getChannelData(c);
+        for (let [n, sample] of channelBuffer.entries()) {
+          stream.setSample(n, c, sample);
         }
       }
 
