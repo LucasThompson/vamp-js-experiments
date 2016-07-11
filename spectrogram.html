@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width">
+  <title>Vamp.js - Spectrogram Example</title>
+</head>
+
+<body>
+  <button class="play">Play</button>
+  <pre></pre>
+</body>
+<script src="./Vamp.js"></script>
+<script src="./Chart.min.js"></script>
+<script src="./VampUtils.js"></script>
+<script>
+  var runner = new WebAudioVampPluginRunner('drums.ogg', function (sr) {
+    return vamp.createPowerSpectrum(sr);
+  });
+  
+  document.querySelector('.play').onclick = function () {
+    runner.playSong();    
+  };
+  
+  runner.start();
+</script>
+</html>
