@@ -15,6 +15,6 @@ There are only a few simple classes (all within VampUtils.js for simplicity):
 
 ### Examples: 
 These need to be run in a recent version of Chrome or Firefox, due to not transpiling from ES6 to something more widely supported.
-* [Zero Crossing Counts](https://lucasthompson.github.io/vamp-js-example-es6/zero-crossings.html) - This example uses the ZeroCrossing plugin from the Vamp Plugin SDK examples, and renders a line graph using .
+* [Zero Crossing Counts](https://lucasthompson.github.io/vamp-js-example-es6/zero-crossings.html) - This example uses the ZeroCrossing plugin from the Vamp Plugin SDK examples, and renders a line graph using Chart.js.
 * [Spectrogram](https://lucasthompson.github.io/vamp-js-example-es6/spectrogram.html) - This example uses the PowerSpectrum plugin from the Vamp Plugin SDK examples, and renders a simple black and white spectrogram using a HTML5 Canvas Element.
 
