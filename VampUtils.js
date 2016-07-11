@@ -39,7 +39,7 @@ class SpectrogramCanvasView extends VampFeatureCanvasView {
       // scale
       var value = array[i] / array.length;
       // re-map range
-      var dbMag = !value ? minDecibels : 20.0 * Math.log10(value);
+      var dbMag = (isFinite(value) && value > 0.0) ? 20.0 * Math.log10(value) : minDecibels;
       var scaledValue = 255 * (dbMag - minDecibels) * rangeScaleFactor;
       // clip to uint8 range
       if (scaledValue < 0)
