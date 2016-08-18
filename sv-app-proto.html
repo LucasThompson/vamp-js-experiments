@@ -64,8 +64,26 @@
 
         request.onload = () => {
             audioCtx.decodeAudioData(request.response).then((buffer) => {
-//                new VampPluginFeatureExtractor(buffer, vamp, vamp.createZeroCrossing(buffer.sampleRate)).extract();
 
+                const feature = new VampPluginFeatureExtractor(buffer, vamp, vamp.createZeroCrossing(buffer.sampleRate)).extract();
+                const normalisationFactor = 1.0 / feature.data.value.reduce((currentMax, featureBin) => Math.max(currentMax, featureBin[0]), -Infinity);
+                let normalisedFeatureData = feature.data.value.map((featureBin) => {
+                    return featureBin.map((dataPoint) => dataPoint * normalisationFactor);
+                });
+                let plotData = [];
+                for (let i = 0; i < feature.data.value.length; ++i) {
+                    plotData.push({cx: feature.data.time[i], cy: normalisedFeatureData[i][0]});
+                }
+
+                // create the layer
+                var breakpointLayer = new wavesUI.helpers.BreakpointLayer(plotData, {
+                    height: height,
+                    color: 'green'
+                });
+
+                timeline.addLayer(breakpointLayer, 'main');
+
+//                VampFeatureCanvasViewFactory.create(feature.descriptor, feature.data).draw();
                 var waveformLayer = new wavesUI.helpers.WaveformLayer(buffer, {
                     height: 600,
                     color: 'darkblue'
