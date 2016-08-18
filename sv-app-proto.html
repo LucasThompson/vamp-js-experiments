@@ -27,40 +27,56 @@
     // wave-ui experimenting
     const trackDiv = document.querySelector('#track-1');
     const width = trackDiv.getBoundingClientRect().width;
-    const height = 10;
+    const height = 600;
     const duration = myAudio.duration;
     const pixelsPerSecond = width / duration;
     const timeline = new wavesUI.core.Timeline(pixelsPerSecond, width);
-    timeline.createTrack(trackDiv, height * 2 + 20, 'main');
+    timeline.createTrack(trackDiv, height, 'main');
 
     // time axis
     const timeAxis = new wavesUI.helpers.TimeAxisLayer({
         height: height,
         top: 10,
-        color: 'steelblue'
+        color: 'gray'
+    });
+
+    const cursorLayer = new wavesUI.helpers.CursorLayer({
+        height: 600
     });
 
     timeline.addLayer(timeAxis, 'main', 'default', true);
+    timeline.addLayer(cursorLayer, 'main');
     timeline.state = new wavesUI.states.CenteredZoomState(timeline);
 
+    // listen for time passing...
+    (function updateSeekingCursor() {
+        cursorLayer.currentPosition = myAudio.currentTime == myAudio.duration ? 0 : myAudio.currentTime;
+        cursorLayer.update();
+
+        requestAnimationFrame(updateSeekingCursor);
+    }());
 
     // app bootstrapping
-    const vamp = VampJS({'onRuntimeInitialized': app});
-
-    function app() {
+    const vamp = VampJS({'onRuntimeInitialized': function () {
         const request = new XMLHttpRequest();
         request.open('GET', 'drums.ogg', true);
         request.responseType = 'arraybuffer';
 
         request.onload = () => {
             audioCtx.decodeAudioData(request.response).then((buffer) => {
-                new VampPluginFeatureExtractor(buffer, vamp, vamp.createZeroCrossing(buffer.sampleRate)).extract();
+//                new VampPluginFeatureExtractor(buffer, vamp, vamp.createZeroCrossing(buffer.sampleRate)).extract();
+
+                var waveformLayer = new wavesUI.helpers.WaveformLayer(buffer, {
+                    height: 600,
+                    color: 'darkblue'
+                });
+                timeline.addLayer(waveformLayer, 'main');
             }).catch(function (err) {
                 console.log('Rendering failed: ' + err);
             });
         };
         request.send();
-    }
+    }});
 
 </script>
 </html>
