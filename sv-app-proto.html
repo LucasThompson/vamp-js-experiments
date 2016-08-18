@@ -8,7 +8,7 @@
 </head>
 <body>
 
-<audio src="./drums.ogg" preload="metadata"></audio>
+<audio src="./drums.ogg" preload="metadata" controls></audio>
 <div id="track-1"></div>
 
 </body>
@@ -48,9 +48,6 @@
     const vamp = VampJS({'onRuntimeInitialized': app});
 
     function app() {
-
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        const audioCtx = new AudioContext();
         const request = new XMLHttpRequest();
         request.open('GET', 'drums.ogg', true);
         request.responseType = 'arraybuffer';
