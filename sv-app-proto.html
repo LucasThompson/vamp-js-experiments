@@ -12,8 +12,8 @@
 <div id="track-1"></div>
 
 </body>
-<script src="./Vamp.js"></script>
 <script src="./waves-ui.min.js"></script>
+<script src="./Vamp.js"></script>
 <script src="./Chart.min.js"></script>
 <script src="./VampUtils.js"></script>
 <script>
@@ -24,38 +24,6 @@
     source.connect(audioCtx.destination);
 
 
-    // wave-ui experimenting
-    const trackDiv = document.querySelector('#track-1');
-    const width = trackDiv.getBoundingClientRect().width;
-    const height = 600;
-    const duration = myAudio.duration;
-    const pixelsPerSecond = width / duration;
-    const timeline = new wavesUI.core.Timeline(pixelsPerSecond, width);
-    timeline.createTrack(trackDiv, height, 'main');
-
-    // time axis
-    const timeAxis = new wavesUI.helpers.TimeAxisLayer({
-        height: height,
-        top: 10,
-        color: 'gray'
-    });
-
-    const cursorLayer = new wavesUI.helpers.CursorLayer({
-        height: 600
-    });
-
-    timeline.addLayer(timeAxis, 'main', 'default', true);
-    timeline.addLayer(cursorLayer, 'main');
-    timeline.state = new wavesUI.states.CenteredZoomState(timeline);
-
-    // listen for time passing...
-    (function updateSeekingCursor() {
-        cursorLayer.currentPosition = myAudio.currentTime == myAudio.duration ? 0 : myAudio.currentTime;
-        cursorLayer.update();
-
-        requestAnimationFrame(updateSeekingCursor);
-    }());
-
     // app bootstrapping
     const vamp = VampJS({'onRuntimeInitialized': function () {
         const request = new XMLHttpRequest();
@@ -64,6 +32,38 @@
 
         request.onload = () => {
             audioCtx.decodeAudioData(request.response).then((buffer) => {
+
+                // wave-ui experimenting
+                const trackDiv = document.querySelector('#track-1');
+                const width = trackDiv.getBoundingClientRect().width;
+                const height = 600;
+                const duration = myAudio.duration;
+                const pixelsPerSecond = width / duration;
+                const timeline = new wavesUI.core.Timeline(pixelsPerSecond, width);
+                timeline.createTrack(trackDiv, height, 'main');
+
+                // time axis
+                const timeAxis = new wavesUI.helpers.TimeAxisLayer({
+                    height: height,
+                    top: 10,
+                    color: 'gray'
+                });
+
+                const cursorLayer = new wavesUI.helpers.CursorLayer({
+                    height: 600
+                });
+
+                timeline.addLayer(timeAxis, 'main', 'default', true);
+                timeline.addLayer(cursorLayer, 'main');
+                timeline.state = new wavesUI.states.CenteredZoomState(timeline);
+
+                // listen for time passing...
+                (function updateSeekingCursor() {
+                    cursorLayer.currentPosition = myAudio.currentTime == myAudio.duration ? 0 : myAudio.currentTime;
+                    cursorLayer.update();
+
+                    requestAnimationFrame(updateSeekingCursor);
+                }());
 
                 const feature = new VampPluginFeatureExtractor(buffer, vamp, vamp.createZeroCrossing(buffer.sampleRate)).extract();
                 const normalisationFactor = 1.0 / feature.data.value.reduce((currentMax, featureBin) => Math.max(currentMax, featureBin[0]), -Infinity);
