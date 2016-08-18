@@ -126,7 +126,8 @@ class VampPluginFeatureExtractor {
     this.fillVampBuffer();
     const feature = JSON.parse(host.run(this.vampStream, this.vampJS.createJsonFeatureSetFormatter(this.pluginOutputNumber)));
     const outputDescriptors = this.vampPlugin.getOutputDescriptors();
-    VampFeatureCanvasViewFactory.create(outputDescriptors.get(this.pluginOutputNumber), feature.feature[0].data[0]).draw();
-    host.delete(); // clean up emscripten objects
+    const output = {descriptor: outputDescriptors.get(this.pluginOutputNumber), data: feature.feature[0].data[0]};
+    host.delete();
+    return output;
   }
 }
