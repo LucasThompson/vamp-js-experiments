@@ -1,5 +1,3 @@
-const vamp = VampJS();
-
 class VampFeatureCanvasView {
   constructor(width, height, JAMS) {
     const canvasElement = document.createElement('canvas');
@@ -105,55 +103,30 @@ class VampFeatureCanvasViewFactory {
   }
 }
 
-class WebAudioVampPluginRunner {
-  constructor(audioFileURI, pluginInitCallback, pluginOutputNumber = 0) {
-    this.pluginInitCallback = pluginInitCallback;
-    const AudioContext = window.AudioContext || window.webkitAudioContext;
-    this.audioCtx = new AudioContext();
-    this.request = new XMLHttpRequest();
-    this.request.open('GET', audioFileURI, true);
-    this.request.responseType = 'arraybuffer';
-    this.request.onload = () => {
-      this.doAudioProcessing()
-    };
-    this.song = false;
+class VampPluginFeatureExtractor {
+  constructor(audioBuffer, vampJS, vampPlugin, pluginOutputNumber = 0) {
+    this.vampJS = vampJS;
+    this.audioBuffer = audioBuffer;
     this.pluginOutputNumber = pluginOutputNumber;
+    this.vampPlugin = vampPlugin;
+    this.vampStream = this.vampJS.createRawDataAudioStream(this.audioBuffer.length, this.audioBuffer.numberOfChannels, this.audioBuffer.sampleRate);
   }
 
-  start() {
-    this.request.send();
-  }
-
-  doAudioProcessing() {
-    const audioData = this.request.response;
-    this.audioCtx.decodeAudioData(audioData).then((renderedBuffer) => {
-      const stream = vamp.createRawDataAudioStream(renderedBuffer.length, renderedBuffer.numberOfChannels, renderedBuffer.sampleRate);
-
-      for (let c = 0; c < renderedBuffer.numberOfChannels; ++c) {
-        const channelBuffer = renderedBuffer.getChannelData(c);
-        for (let [n, sample] of channelBuffer.entries()) {
-          stream.setSample(n, c, sample);
-        }
+  fillVampBuffer() {
+    for (let c = 0; c < this.audioBuffer.numberOfChannels; ++c) {
+      const channelBuffer = this.audioBuffer.getChannelData(c);
+      for (let [n, sample] of channelBuffer.entries()) {
+        this.vampStream.setSample(n, c, sample);
       }
-
-      const vampPlugin = this.pluginInitCallback(renderedBuffer.sampleRate);
-      const outputDescriptors = vampPlugin.getOutputDescriptors();
-      const host = new vamp.VampHost(vampPlugin);
-      const feature = JSON.parse(host.run(stream, vamp.createJsonFeatureSetFormatter(this.pluginOutputNumber)));
-      host.delete(); // clean up emscripten objects
-      this.song = this.audioCtx.createBufferSource();
-      this.song.buffer = renderedBuffer;
-      this.song.connect(this.audioCtx.destination);
-
-      const featureView = VampFeatureCanvasViewFactory.create(outputDescriptors.get(this.pluginOutputNumber), feature.feature[0].data[0]);
-      featureView.draw();
-    }).catch(function (err) {
-      console.log('Rendering failed: ' + err);
-    });
+    }
   }
 
-  playSong() {
-    if (this.song)
-      this.song.start();
+  extract() {
+    const host = new this.vampJS.VampHost(this.vampPlugin);
+    this.fillVampBuffer();
+    const feature = JSON.parse(host.run(this.vampStream, this.vampJS.createJsonFeatureSetFormatter(this.pluginOutputNumber)));
+    const outputDescriptors = this.vampPlugin.getOutputDescriptors();
+    VampFeatureCanvasViewFactory.create(outputDescriptors.get(this.pluginOutputNumber), feature.feature[0].data[0]).draw();
+    host.delete(); // clean up emscripten objects
   }
 }
