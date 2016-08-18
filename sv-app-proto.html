@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width">
+    <title>SV App Prototype</title>
+</head>
+<body>
+
+<audio src="./drums.ogg" preload="metadata"></audio>
+<div id="track-1"></div>
+
+</body>
+<script src="./Vamp.js"></script>
+<script src="./waves-ui.min.js"></script>
+<script src="./Chart.min.js"></script>
+<script src="./VampUtils.js"></script>
+<script>
+    // Web Audio stuff using the MediaElementAudioNode for loading longer audio files
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const myAudio = document.querySelector('audio');
+    const source = audioCtx.createMediaElementSource(myAudio);
+    source.connect(audioCtx.destination);
+
+
+    // wave-ui experimenting
+    const trackDiv = document.querySelector('#track-1');
+    const width = trackDiv.getBoundingClientRect().width;
+    const height = 10;
+    const duration = myAudio.duration;
+    const pixelsPerSecond = width / duration;
+    const timeline = new wavesUI.core.Timeline(pixelsPerSecond, width);
+    timeline.createTrack(trackDiv, height * 2 + 20, 'main');
+
+    // time axis
+    const timeAxis = new wavesUI.helpers.TimeAxisLayer({
+        height: height,
+        top: 10,
+        color: 'steelblue'
+    });
+
+    timeline.addLayer(timeAxis, 'main', 'default', true);
+    timeline.state = new wavesUI.states.CenteredZoomState(timeline);
+
+
+    // app bootstrapping
+    const vamp = VampJS({'onRuntimeInitialized': app});
+
+    function app() {
+
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const audioCtx = new AudioContext();
+        const request = new XMLHttpRequest();
+        request.open('GET', 'drums.ogg', true);
+        request.responseType = 'arraybuffer';
+
+        request.onload = () => {
+            audioCtx.decodeAudioData(request.response).then((buffer) => {
+                new VampPluginFeatureExtractor(buffer, vamp, vamp.createZeroCrossing(buffer.sampleRate)).extract();
+            }).catch(function (err) {
+                console.log('Rendering failed: ' + err);
+            });
+        };
+        request.send();
+    }
+
+</script>
+</html>
