@@ -21,12 +21,12 @@
     const myAudio = document.querySelector('audio');
     const source = audioCtx.createMediaElementSource(myAudio);
     source.connect(audioCtx.destination);
-
+    const audioFileURI = myAudio.src;
 
     // app bootstrapping
     const vamp = VampJS({'onRuntimeInitialized': function () {
         const request = new XMLHttpRequest();
-        request.open('GET', 'drums.ogg', true);
+        request.open('GET', audioFileURI, true);
         request.responseType = 'arraybuffer';
 
         request.onload = () => {
