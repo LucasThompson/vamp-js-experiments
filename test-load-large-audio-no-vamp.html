@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width">
+    <title>SV App Prototype</title>
+</head>
+<body>
+
+<audio src="./LongerFile.mp3" preload="metadata" controls></audio>
+<pre id="status-message">Loading..</pre>
+<div id="track-1"></div>
+
+</body>
+<script src="./waves-ui.min.js"></script>
+<script>
+    // Web Audio stuff using the MediaElementAudioNode for loading longer audio files
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const myAudio = document.querySelector('audio');
+    const source = audioCtx.createMediaElementSource(myAudio);
+    source.connect(audioCtx.destination);
+    const audioFileURI = myAudio.src;
+    const statusMessageElement = document.querySelector('#status-message');
+    console.log('Loading: ' + audioFileURI + '..');
+    const getCurrentTime = () => new Date().getTime();
+    const timeStart = getCurrentTime();
+
+    const request = new XMLHttpRequest();
+    request.open('GET', audioFileURI, true);
+    request.responseType = 'arraybuffer';
+
+    request.onload = () => {
+        console.log('Request loaded..');
+        audioCtx.decodeAudioData(request.response).then((buffer) => {
+            console.log('Finished decoding audio data..');
+            const timeToDecode = (getCurrentTime() - timeStart) * 0.001;
+            const statusMessage = 'Time to decode audio data (seconds): ' + timeToDecode;
+            console.log(statusMessage);
+            statusMessageElement.textContent = statusMessage;
+            // wave-ui experimenting
+            const trackDiv = document.querySelector('#track-1');
+            const width = trackDiv.getBoundingClientRect().width;
+            const height = 600;
+            const duration = myAudio.duration;
+            const pixelsPerSecond = width / duration;
+            const timeline = new wavesUI.core.Timeline(pixelsPerSecond, width);
+            timeline.createTrack(trackDiv, height, 'main');
+
+            // time axis
+            const timeAxis = new wavesUI.helpers.TimeAxisLayer({
+                height: height,
+                top: 10,
+                color: 'gray'
+            });
+            timeline.addLayer(timeAxis, 'main', 'default', true);
+            timeline.state = new wavesUI.states.CenteredZoomState(timeline);
+            var waveformLayer = new wavesUI.helpers.WaveformLayer(buffer, {
+                height: 600,
+                color: 'darkblue'
+            });
+            timeline.addLayer(waveformLayer, 'main');
+            console.log('Done');
+        }).catch(function (err) {
+            console.log('Rendering failed: ' + err);
+        });
+    };
+    request.send();
+
+</script>
+</html>
