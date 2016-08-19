@@ -14,7 +14,6 @@
 </body>
 <script src="./waves-ui.min.js"></script>
 <script src="./Vamp.js"></script>
-<script src="./Chart.min.js"></script>
 <script src="./VampUtils.js"></script>
 <script>
     // Web Audio stuff using the MediaElementAudioNode for loading longer audio files
@@ -65,7 +64,7 @@
                     requestAnimationFrame(updateSeekingCursor);
                 }());
 
-                const feature = new VampPluginFeatureExtractor(buffer, vamp, vamp.createZeroCrossing(buffer.sampleRate)).extract();
+                const feature = new VampPluginFeatureExtractor(vamp, vamp.createZeroCrossing(buffer.sampleRate)).extract(new AudioStream(buffer, vamp));
                 const normalisationFactor = 1.0 / feature.data.value.reduce((currentMax, featureBin) => Math.max(currentMax, featureBin[0]), -Infinity);
 
                 let normalisedFeatureData = feature.data.value.map((featureBin) => {
