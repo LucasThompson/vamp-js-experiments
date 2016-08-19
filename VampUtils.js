@@ -115,8 +115,8 @@ class VampPluginFeatureExtractor {
   fillVampBuffer() {
     for (let c = 0; c < this.audioBuffer.numberOfChannels; ++c) {
       const channelBuffer = this.audioBuffer.getChannelData(c);
-      for (let [n, sample] of channelBuffer.entries()) {
-        this.vampStream.setSample(n, c, sample);
+      for (let n = 0; n < channelBuffer.length; ++n) {
+        vampStream.setSample(n, c, channelBuffer[n]);
       }
     }
   }
